@@ -21,10 +21,10 @@ lazy val chiselSettings = Seq(
   addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % chiselVersion cross CrossVersion.full)
 )
 
-lazy val `api-config-chipsalliance` = (project in file("api-config-chipsalliance/cde/src/chipsalliance/rocketchip"))
+lazy val `api-config-chipsalliance` = (project in file("rocket-chip/api-config-chipsalliance/design/craft/src/config"))
   .settings(commonSettings)
 
-lazy val hardfloat = (project in file("berkeley-hardfloat"))
+lazy val hardfloat = (project in file("rocket-chip/hardfloat"))
   .settings(commonSettings, chiselSettings)
 
 lazy val rocketMacros = (project in file("rocket-chip/macros"))
