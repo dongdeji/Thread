@@ -6,6 +6,9 @@
 
 SBT = sbt
 
+init:
+	git submodule update --init && git -C rocket-chip submodule update --init
+
 
 # Generate Verilog code
 thread:
