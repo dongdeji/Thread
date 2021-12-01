@@ -41,21 +41,46 @@
   .word XCUSTOM(x, ## rd, ## rs1, ## rs2, funct)
 
 // Standard macro that passes rd, rs1, and rs2 via registers
-#define ROCC_INSTRUCTION(x, rd, rs1, rs2, funct)                \
-  ROCC_INSTRUCTION_R_R_R(x, rd, rs1, rs2, funct, 10, 11, 12)
+#define ROCC_INSTRUCTION(x, rd1, rd2, rd3, rd4, rs11, rs12, rs13, rs14, rs21, rs22, rs23, rs24, funct)                \
+  ROCC_INSTRUCTION_R_R_R(x, rd1, rd2, rd3, rd4, \
+                            rs11, rs12, rs13, rs14, \
+                            rs21, rs22, rs23, rs24, \
+                            funct, \
+                            10, 11, 12, 13, \
+                            14, 15, 16, 17, \
+                            18, 19, 20, 21)
 
 // rd, rs1, and rs2 are data
 // rd_n, rs_1, and rs2_n are the register numbers to use
-#define ROCC_INSTRUCTION_R_R_R(x, rd, rs1, rs2, funct, rd_n, rs1_n, rs2_n) \
+#define ROCC_INSTRUCTION_R_R_R(x, rd1, rd2, rd3, rd4, \
+                                  rs11, rs12, rs13, rs14, \
+                                  rs21, rs22, rs23, rs24, \
+                                  funct, \
+                                  rd1_n,  rd2_n,  rd3_n,  rd4_n,\
+                                  rs11_n, rs12_n, rs13_n, rs14_n, \
+                                  rs21_n, rs22_n, rs23_n, rs24_n) \
   {                                                                     \
-    register uint64_t rd_  asm ("x" # rd_n);                            \
-    register uint64_t rs1_ asm ("x" # rs1_n) = (uint64_t) rs1;          \
-    register uint64_t rs2_ asm ("x" # rs2_n) = (uint64_t) rs2;          \
+    register uint64_t rd1_  asm ("x" # rd1_n);                          \
+    register uint64_t rd2_  asm ("x" # rd2_n);                          \
+    register uint64_t rd3_  asm ("x" # rd3_n);                          \
+    register uint64_t rd4_  asm ("x" # rd4_n);                          \
+    register uint64_t rs11_ asm ("x" # rs11_n) = (uint64_t) rs11;        \
+    register uint64_t rs12_ asm ("x" # rs12_n) = (uint64_t) rs12;        \
+    register uint64_t rs13_ asm ("x" # rs13_n) = (uint64_t) rs13;        \
+    register uint64_t rs14_ asm ("x" # rs14_n) = (uint64_t) rs14;        \
+    register uint64_t rs21_ asm ("x" # rs21_n) = (uint64_t) rs21;        \
+    register uint64_t rs22_ asm ("x" # rs22_n) = (uint64_t) rs22;        \
+    register uint64_t rs23_ asm ("x" # rs23_n) = (uint64_t) rs23;        \
+    register uint64_t rs24_ asm ("x" # rs24_n) = (uint64_t) rs24;        \
     asm volatile (                                                      \
-        ".word " STR(XCUSTOM(x, rd_n, rs1_n, rs2_n, funct)) "\n\t"      \
-        : "=r" (rd_)                                                    \
-        : [_rs1] "r" (rs1_), [_rs2] "r" (rs2_));                        \
-    rd = rd_;                                                           \
+        ".word " STR(XCUSTOM(x, rd1_n, rs11_n, rs21_n, funct)) "\n\t"   \
+        : "=r" (rd1_) ,"=r" (rd2_) ,"=r" (rd3_) ,"=r" (rd4_)            \
+        : [_rs11] "r" (rs11_), [_rs12] "r" (rs12_), [_rs13] "r" (rs13_), [_rs14] "r" (rs14_),  \
+          [_rs21] "r" (rs21_), [_rs22] "r" (rs22_), [_rs23] "r" (rs23_), [_rs24] "r" (rs24_)); \
+    rd1 = rd1_;                                                         \
+    rd2 = rd2_;                                                         \
+    rd3 = rd3_;                                                         \
+    rd4 = rd4_;                                                         \
   }
 
 #define ROCC_INSTRUCTION_0_R_R(x, rs1, rs2, funct, rs1_n, rs2_n)  \
@@ -83,7 +108,8 @@
 
 #endif  // ROCC_SOFTWARE_SRC_XCUSTOM_H_
 
-#define doCustom(y, data1, data2) ROCC_INSTRUCTION(3, y, data1, data2, 0)
+#define doCustom(y1, y2, y3, y4, data1, data2, data3, data4, data5, data6, data7, data8) \
+        ROCC_INSTRUCTION(3, y1, y2, y3, y4, data1, data2, data3, data4, data5, data6, data7, data8, 0)
 
 /* Register offsets */
 #define UART_REG_TXFIFO         0x00
@@ -115,11 +141,15 @@ volatile void _kputs(const char *s)
 
 int main(void)
 {
-  uint64_t data [] = { 0x1111, 0x2222, 0x3333, 0x4444 }, y;
+  uint64_t data [] = { 0x1111, 0x2222, 0x3333, 0x4444, \
+                       0x5555, 0x6666, 0x7777, 0x8888, \
+                       0x9999, 0xaaaa, 0xbbbb, 0xcccc, \
+                       0xdddd, 0xeeee, 0xffff, 0x5a5a };
+  uint64_t y1, y2, y3, y4, y5, y6, y7, y8 ;
   while(1)
   {
-    doCustom(y, data[0], data[1]);
-    doCustom(y, data[2], data[3]);
+    doCustom(y1, y2, y3, y4, data[0], data[1],  data[2],  data[3],  data[4],  data[5],  data[6],  data[7]);
+    doCustom(y5, y6, y7, y8, data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15]);
 	  _kputs("Hellow World\r\n");
   }
 	return 0;
