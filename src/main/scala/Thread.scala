@@ -957,10 +957,11 @@ import freechips.rocketchip.diplomaticobjectmodel.logicaltree.GenericLogicalTree
 
 
 
-class TestXbar()(implicit p: Parameters) extends LazyModule {
+class XbarThread()(implicit p: Parameters) extends LazyModule {
 
   ElaborationArtefacts.add("graphml", graphML)
-
+  ElaborationArtefacts.add("plusArgs", PlusArgArtefacts.serialize_cHeader)
+  
   val fuzz = LazyModule(new TLFuzzer(10))
   val model = LazyModule(new TLRAMModel("Xbar"))
   val tlxbar = LazyModule(new TLXbar)
@@ -995,14 +996,14 @@ class TestXbar()(implicit p: Parameters) extends LazyModule {
     val io = IO(new Bundle {
       val clock = Input(Clock())
       val reset = Input(Bool())
-      val finished = Output(Bool())
+      val success = Output(Bool())
       val start = Input(Bool())
     })
 
     val membus = axi4slavenode.makeIOs()
 
     chisel3.dontTouch(io)
-    io.finished := fuzz.module.io.finished
+    io.success := fuzz.module.io.finished
     withClockAndReset(io.clock, io.reset) {
       val threadsoctop = Module(new ThreadSocTop())
       chisel3.dontTouch(threadsoctop.io)
@@ -1015,13 +1016,13 @@ object TopMain extends App with HasRocketChipStageUtils {
     implicit val p = Parameters.empty
     (new chisel3.stage.ChiselStage).execute(args, Seq(
       chisel3.stage.ChiselGeneratorAnnotation(() => {
-        val soc = LazyModule(new TestXbar())
+        val soc = LazyModule(new XbarThread())
         soc.module
       })
     ))
 
     ElaborationArtefacts.files.foreach{ case (extension, contents) =>
-      writeOutputFile("./build", s"threadtop.${extension}", contents())
+      writeOutputFile("./generated-src", s"XbarThread.${extension}", contents())
     }
   }
 }
