@@ -6,6 +6,9 @@
 
 SBT = sbt
 
+include $(abspath)Makefrag-verilator
+
+
 init:
 	git submodule update --init && git -C rocket-chip submodule update --init
 
